@@ -11,7 +11,7 @@
 #include "cppmain.h"
 #include "critical.hpp"
 #include <span>
-
+#include <algorithm>
 std::vector<ErrorHandler*> ErrorHandler::errorHandlers;
 //std::vector<Error> ErrorHandler::errors;
 std::array<Error,ERRORHANDLER_MAXERRORS> ErrorHandler::errors;
