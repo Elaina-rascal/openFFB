@@ -8,13 +8,13 @@
             "executable": "${command:cmake.launchTargetPath}",
             "request": "launch",
             "servertype": "openocd",
-            "device": "STM32H743IITx", //MCU used
+            "device": "STM32F407VGTx", //MCU used
             "interface": "swd",
             "runToEntryPoint": "main",
-            "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32H743.svd",    
+            "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32F407VGTx.svd",    
             "configFiles": [
                 "interface/cmsis-dap.cfg",
-                "target/stm32h7x.cfg"
+                "target/stm32f4x.cfg"
             ],
             // "armToolchainPath": "D:/TOOLS/ARM_ToolChain/arm-gnu-toolchain-14.2.rel1-mingw-w64-i686-arm-none-eabi/bin",
             // "showDevDebugOutput": "raw",
