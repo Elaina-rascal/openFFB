@@ -11,7 +11,7 @@
             "device": "STM32F407VGTx", //MCU used
             "interface": "swd",
             "runToEntryPoint": "main",
-            "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32F407VGTx.svd",    
+            "svdFile": "${workspaceFolder}/STM32F407.svd",    
             "configFiles": [
                 "interface/cmsis-dap.cfg",
                 "target/stm32f4x.cfg"
