@@ -1,3 +1,5 @@
 /Debug/
 /.settings/
 *.launch
+/build/
+.cache/
