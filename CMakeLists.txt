@@ -22,9 +22,13 @@ add_compile_options(-D_GLIBCXX_USE_CXX11_ABI=0)
 add_compile_options(-frtti)
 remove_definitions(-fno-rtti)
 
-file(GLOB MY_SRC 
-    "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/**/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/**/*.cpp"
+# file(GLOB MY_SRC 
+#     "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/**/*.c"
+#     "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/**/*.cpp"
+# )
+file(GLOB_RECURSE MY_SRC
+    "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/*.cpp"
 )
 file(GLOB_RECURSE ALL_PATHS
     LIST_DIRECTORIES true
@@ -72,6 +76,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${MY_SRC}
     ${CMAKE_CURRENT_SOURCE_DIR}/newlib_lock_glue.c
     ${CMAKE_CURRENT_SOURCE_DIR}/startup_stm32f411xe.s
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cpp_target_config.cpp
 )
 
 # Add include paths
