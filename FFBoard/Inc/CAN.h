@@ -8,6 +8,7 @@
 #ifndef SRC_CAN_H_
 #define SRC_CAN_H_
 #include "target_constants.h"
+#include <algorithm>
 #ifdef CANBUS
 //#include "CanHandler.h"
 #include "main.h"

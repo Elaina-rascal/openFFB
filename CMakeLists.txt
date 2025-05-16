@@ -75,7 +75,6 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     ${MY_SRC}
     ${CMAKE_CURRENT_SOURCE_DIR}/newlib_lock_glue.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/startup_stm32f411xe.s
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cpp_target_config.cpp
 )
 
