@@ -44,7 +44,7 @@ foreach(path ${ALL_PATHS})
     endif()
 endforeach()
 # Set the project name
-set(CMAKE_PROJECT_NAME OpenFFBoard_F411RE)
+set(CMAKE_PROJECT_NAME OpenFFBoard_F407VG)
 
 # Include toolchain file
 include("cmake/gcc-arm-none-eabi.cmake")
