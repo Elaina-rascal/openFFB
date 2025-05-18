@@ -17,7 +17,7 @@ set(CMAKE_CXX_STANDARD 20)
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
-
+#启动std动态映射 
 add_compile_options(-D_GLIBCXX_USE_CXX11_ABI=0)
 add_compile_options(-frtti)
 remove_definitions(-fno-rtti)
@@ -26,6 +26,7 @@ remove_definitions(-fno-rtti)
 #     "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/**/*.c"
 #     "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/**/*.cpp"
 # )
+#递归查找FFBoard目录下的所有.c和.cpp文件
 file(GLOB_RECURSE MY_SRC
     "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/*.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/*.cpp"
@@ -45,6 +46,7 @@ foreach(path ${ALL_PATHS})
 endforeach()
 # Set the project name
 set(CMAKE_PROJECT_NAME OpenFFBoard_F407VG)
+#启动浮点数打印支持
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -u _printf_float")
 # Include toolchain file
 include("cmake/gcc-arm-none-eabi.cmake")
