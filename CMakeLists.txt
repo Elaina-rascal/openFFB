@@ -22,6 +22,11 @@ add_compile_options(-D_GLIBCXX_USE_CXX11_ABI=0)
 add_compile_options(-frtti)
 remove_definitions(-fno-rtti)
 
+# 添加keil调试信息
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -gdwarf-2")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -gdwarf-2")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g")
+
 # file(GLOB MY_SRC 
 #     "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/**/*.c"
 #     "${CMAKE_CURRENT_SOURCE_DIR}/FFBoard/**/*.cpp"
