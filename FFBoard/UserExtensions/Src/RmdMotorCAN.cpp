@@ -182,25 +182,47 @@ bool RmdMotorCAN::motorReady(){
 	return lastErrors.asInt == 0 && available; // Ping motor state
 }
 
-
+/**
+ * @brief 返回一圈对应的脉冲数,最大值为0xFFFF
+ * 
+ * @return uint32_t 
+ */
 uint32_t RmdMotorCAN::getCpr(){
-	return 36000;
+	return 0xFFFF;
 }
-
+/**
+ * @brief 获得圈数
+ * 
+ * @return float 
+ */
+float RmdMotorCAN::getPos_f(){
+	//返回的是圈数
+    if (activerequests && HAL_GetTick() - lastAngleUpdate > angleUpdateMs)
+    {
+        // pos outdated. Should be sent without request
+        if (robstriteMotor.Pos_Info.pattern == 2)
+        {
+            robstriteMotor.Enable_Motor(); // 获得电机位置
+        }
+    }
+    lastPos=robstriteMotor.Pos_Info.Angle /(2*3.1415926535); // Get position in radians
+	return  lastPos-posOffset;
+}
+/**
+ * @brief 返回编码器位置
+ * 
+ * @return int32_t 
+ */
 int32_t RmdMotorCAN::getPos(){
-	if(activerequests && HAL_GetTick() - lastAngleUpdate > angleUpdateMs){
-		// pos outdated. Should be sent without request
-		if(robstriteMotor.Pos_Info.pattern==2)
-		{
-			robstriteMotor.Enable_Motor(); //获得电机位置		
-		}
-	}
-	lastPos= robstriteMotor.Pos_Info.Angle; // Get position in 0.01 degrees
-	return (lastPos) - posOffset;
+	return (int32_t)(getPos_f() * getCpr()); // Get position in counts
 }
-
+/**
+ * @brief 设置编码器位置
+ * 
+ * @param pos 
+ */
 void RmdMotorCAN::setPos(int32_t pos){
-	posOffset = (lastPos*100) - pos;
+	posOffset = lastPos- ((float)pos / (float)getCpr()); // Set offset to last position
 }
 void RmdMotorCAN::sendMsg(void* header_in,uint8_t* data){
 	CAN_TxHeaderTypeDef * header= static_cast<CAN_TxHeaderTypeDef *>(header_in); 
