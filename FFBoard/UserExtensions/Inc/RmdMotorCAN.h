@@ -36,7 +36,7 @@ public:
 	void startMotor() override;
 	Encoder* getEncoder() override;
 	bool hasIntegratedEncoder() override {return true;}
-	void setTorque(int16_t torque);
+	void setTorque(float torque);
 	bool motorReady() override; 
 
 	void Run()override;

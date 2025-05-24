@@ -109,7 +109,7 @@ void RmdMotorCAN::Run(){
             {
                 _lastVoltageUpdateTime = current_time;
                 robstriteMotor.Get_RobStrite_Motor_parameter(0x701C); // 获得电压
-                robstriteMotor.RobStrite_Motor_Speed_control(0.5, 0.5, 0.5);
+                // robstriteMotor.RobStrite_Motor_Speed_control(0.5, 0.5, 0.5);
             }
         }
 		available=true;
@@ -251,9 +251,8 @@ void RmdMotorCAN::sendMsg(std::array<uint8_t,8> &data,uint8_t len){
 /**
  * Torque 0.01A * torque
  */
-void RmdMotorCAN::setTorque(int16_t torque){
-	std::array<uint8_t,8> data{0xA1,0,0,0,(uint8_t)(torque & 0xff),(uint8_t)((torque >> 8) & 0xff),0,0};
-	sendMsg(data);
+void RmdMotorCAN::setTorque(float torque){
+	robstriteMotor.RobStrite_Motor_current_control(torque);
 }
 
 void RmdMotorCAN::turn(int16_t power){
