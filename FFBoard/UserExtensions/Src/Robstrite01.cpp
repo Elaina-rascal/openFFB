@@ -263,6 +263,7 @@ void RobStrite_Motor::RobStrite_Motor_Speed_control(float Speed,
                                                     float limit_cur) {
   Motor_Set_All.set_speed = Speed;
   Motor_Set_All.set_limit_cur = limit_cur;
+  Motor_Set_All.set_acceleration = acceleration;
   // if (drw.run_mode.data != 2 && Pos_Info.pattern == 2)
   // {
   // 	Set_RobStrite_Motor_parameter(0X7005, Speed_control_mode, Set_mode);
@@ -455,6 +456,7 @@ void RobStrite_Motor::SetCurrentMode(uint8_t mode) {
     Get_RobStrite_Motor_parameter(0x7005);
     _delay(20);
     Enable_Motor(); // 使能电机
+    _delay(20);
     Motor_Set_All.set_motor_mode = Speed_control_mode;
   }
 }

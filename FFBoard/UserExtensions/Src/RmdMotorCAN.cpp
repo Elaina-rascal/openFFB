@@ -99,19 +99,21 @@ void RmdMotorCAN::saveFlash(){
 
 void RmdMotorCAN::Run(){
 //	bool first = true;
+	// robstriteMotor.RobStrite_Motor_Speed_control(0.5, 0.5,0.5);
 	Delay(100);
 	while(true){
         auto current_time = HAL_GetTick();
         if(activerequests)
 		{
-            robstriteMotor.Enable_Motor(); // 获得反馈
+            if (current_time - _lastVoltageUpdateTime > 2000)
+            {
+                _lastVoltageUpdateTime = current_time;
+                robstriteMotor.Get_RobStrite_Motor_parameter(0x701C); // 获得电压
+                robstriteMotor.RobStrite_Motor_Speed_control(0.5, 0.5, 0.5);
+            }
         }
 		available=true;
-		if(current_time-_lastVoltageUpdateTime > 2000)
-		{
-			_lastVoltageUpdateTime = current_time;
-			robstriteMotor.Get_RobStrite_Motor_parameter(0x701C); //获得电压
-		}
+		
 		DelayUntil(500);
 		
 		// nextAvailable = false;
@@ -188,10 +190,13 @@ uint32_t RmdMotorCAN::getCpr(){
 int32_t RmdMotorCAN::getPos(){
 	if(activerequests && HAL_GetTick() - lastAngleUpdate > angleUpdateMs){
 		// pos outdated. Should be sent without request
-		robstriteMotor.Enable_Motor();
+		if(robstriteMotor.Pos_Info.pattern==2)
+		{
+			robstriteMotor.Enable_Motor(); //获得电机位置		
+		}
 	}
 	lastPos= robstriteMotor.Pos_Info.Angle; // Get position in 0.01 degrees
-	return (lastPos*100) - posOffset;
+	return (lastPos) - posOffset;
 }
 
 void RmdMotorCAN::setPos(int32_t pos){
