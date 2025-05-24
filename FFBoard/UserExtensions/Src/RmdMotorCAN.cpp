@@ -51,7 +51,9 @@ RmdMotorCAN::RmdMotorCAN(uint8_t instance) : CommandHandler("rmd", CLSID_MOT_RMD
 	if(port->getSpeedPreset() < 3){
 		port->setSpeedPreset(3); // Minimum 250k. Default 1M
 	}
-
+	this->robstriteMotor = RobStrite_Motor([this](void *header, uint8_t *data){sendMsg(header,data);},
+			[this](uint32_t delay){Delay(delay);});
+	this->robstriteMotor.SetSenderCanID(nodeId); // Set CAN ID for robstrite motor
 	this->port->setSilentMode(false);
 	this->registerCommands();
 	this->port->takePort();
@@ -98,10 +100,11 @@ void RmdMotorCAN::saveFlash(){
 void RmdMotorCAN::Run(){
 //	bool first = true;
 	Delay(100);
+	// startMotor();
 	while(true){
 		nextAvailable = false;
 		if(!available){
-			sendCmd(0xB5); // Get type
+			// sendCmd(0xB5); // Get type
 			Delay(20);
 		}
 
@@ -137,14 +140,15 @@ void RmdMotorCAN::setCanFilter(){
 
 void RmdMotorCAN::stopMotor(){
 	active = false;
-	this->setTorque(0);
-	sendCmd(0x80); // Disable motor
+	// sendCmd(0x80); // Disable motor
+	robstriteMotor.Disenable_Motor(1);
 }
 
 void RmdMotorCAN::startMotor(){
 	if(lastErrors.asInt == 0){ // Only allow enabling if no errors to prevent reenabling after failure
 		active = true;
-		setTorque(0); // Enable torque mode, no torque
+		// setTorque(0); // Enable torque mode, no torque
+		robstriteMotor.Enable_Motor();
 	}
 }
 
@@ -173,7 +177,19 @@ int32_t RmdMotorCAN::getPos(){
 void RmdMotorCAN::setPos(int32_t pos){
 	posOffset = (lastPos*100) - pos;
 }
-
+void RmdMotorCAN::sendMsg(void* header_in,uint8_t* data){
+	CAN_TxHeaderTypeDef * header= static_cast<CAN_TxHeaderTypeDef *>(header_in); 
+  	CAN_tx_msg msg;
+	//用的是extid 在这里extid是标志位决定id被当成stdid还是extid
+	msg.header.extId= true;
+	msg.header.id = header->ExtId;
+	msg.header.rtr = header->RTR;
+	msg.header.length = header->DLC;
+	memcpy(&msg.data,data,header->DLC);
+	if(!port->sendMessage(msg)){
+		// Nothing
+	}
+}
 void RmdMotorCAN::sendMsg(std::array<uint8_t,8> &data,uint8_t len){
 	CAN_tx_msg msg;
 	memcpy(&msg.data,data.data(),std::min<uint8_t>(data.size(), CAN_MSGBUFSIZE));
@@ -341,6 +357,7 @@ CommandStatus RmdMotorCAN::command(const ParsedCommand& cmd,std::vector<CommandR
 			if(cmd.val != this->nodeId){
 				this->nodeId = cmd.val;
 				setCanFilter(); // Removes previous filter if set automatically
+				robstriteMotor.SetSenderCanID(this->nodeId);
 			}
 		}else{
 			return CommandStatus::ERR;

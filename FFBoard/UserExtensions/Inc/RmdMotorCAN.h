@@ -52,7 +52,7 @@ public:
 
 	void setCanFilter();
 	void updateRequestMode(bool activerequests);
-
+	void sendMsg(void* header,uint8_t* data);
 	void sendMsg(std::array<uint8_t,8> &data,uint8_t len = 8);
 	void sendCmd(uint8_t cmd);
 
@@ -93,7 +93,7 @@ private:
 	bool activerequests = false;
 	bool requestConstantReportEnable = false;
 
-	char modelName[8] = {0};
+	char modelName[8] = {"strite"};
 
 	uint32_t lastAngleUpdate = 0;
 	uint32_t lastTorqueStatusUpdate_us = 0;
@@ -110,7 +110,7 @@ private:
 	ErrorStatus lastErrors = {0};
 
 	int32_t posOffset = 0;
-
+	RobStrite_Motor robstriteMotor;
 	void errorCb(ErrorStatus &errors);
 };
 

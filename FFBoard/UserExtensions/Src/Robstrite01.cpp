@@ -12,7 +12,16 @@
 #define T_MAX 17.0f
 
 uint32_t Mailbox; // 定义邮箱变量
-
+RobStrite_Motor::RobStrite_Motor(
+    std::function<void(void *header, uint8_t *data)> can_tx_register,
+    std::function<void(uint32_t delay)> delay)
+{
+    CAN_ID = 127;         // 默认CAN ID
+    Master_CAN_ID = 0x1F; // 主机ID
+    Motor_Set_All.set_motor_mode = move_control_mode;
+    _can_tx_register = can_tx_register;
+    _delay = delay;
+}
 /*******************************************************************************
  * @功能     		: RobStrite电机实例化的构造函数
  * @参数         : CAN ID
@@ -288,7 +297,8 @@ void RobStrite_Motor::RobStrite_Motor_current_control(float current) {
  * @概述  				: None
  *******************************************************************************/
 void RobStrite_Motor::RobStrite_Motor_Set_Zero_control() {
-  Set_RobStrite_Motor_parameter(0X7005, Set_Zero_mode, Set_mode); // 设置电机模式
+  Set_RobStrite_Motor_parameter(0X7005, Set_Zero_mode,
+                                Set_mode); // 设置电机模式
 }
 /*******************************************************************************
  * @功能     		: RobStrite电机使能 （通信类型3）
@@ -379,6 +389,15 @@ void RobStrite_Motor::Get_RobStrite_Motor_parameter(uint16_t Index) {
       Communication_Type_GetSingleParameter << 24 | Master_CAN_ID << 8 | CAN_ID;
   _can_tx_register(&TxMessage, txdata);
   ; // 发送CAN消息
+}
+/*******************************************************************************
+ * @功能     		: RobStrite电机设置发送者CAN ID
+ * @参数         : 发送者的CAN ID
+ * @返回值 			: void
+ * @概述  				: 会在创建电机类时自动调用
+ *******************************************************************************/
+void RobStrite_Motor::SetSenderCanID(uint8_t can_id) {
+  CAN_ID= can_id; // 设置电机的CAN ID
 }
 /*******************************************************************************
  * @功能     		: RobStrite电机设置CAN_ID （通信类型7）
