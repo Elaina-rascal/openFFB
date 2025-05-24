@@ -127,15 +127,22 @@ void RmdMotorCAN::setCanFilter(){
 	if(filterId >= 0){
 		port->removeCanFilter(filterId);
 	}
-	nodeId = std::min<uint8_t>(nodeId,32);
-	uint32_t filter_id = (nodeId + 0x240); // Reply
-	uint32_t filter_mask = 0x3FF;
+	// nodeId = std::min<uint8_t>(nodeId,32);
+	// uint32_t filter_id = (nodeId + 0x240); // Reply
+	// uint32_t filter_mask = 0x3FF;
 
-	CAN_filter filterConf;
-	filterConf.buffer = motorId % 2 == 0 ? 0 : 1;
-	filterConf.filter_id = filter_id;
-	filterConf.filter_mask =  filter_mask;
-	this->filterId = this->port->addCanFilter(filterConf);
+	// CAN_filter filterConf;
+	// filterConf.buffer = motorId % 2 == 0 ? 0 : 1;
+	// filterConf.filter_id = filter_id;
+	// filterConf.filter_mask =  filter_mask;
+	// this->filterId = this->port->addCanFilter(filterConf);
+	//改成全接受
+    CAN_filter filterConf;
+    filterConf.buffer = 0;               // 默认缓冲区，你可以根据需要调整
+    filterConf.filter_id = 0x00000000;   // 匹配所有 ID
+    filterConf.filter_mask = 0x00000000; // 屏蔽所有位（即所有 ID 都能匹配）
+
+    this->filterId = this->port->addCanFilter(filterConf);
 }
 
 void RmdMotorCAN::stopMotor(){
@@ -254,68 +261,12 @@ void RmdMotorCAN::requestConstantReports(uint8_t cmd,bool enable,uint16_t interv
 }
 
 void RmdMotorCAN::canRxPendCallback(CANPort* port,CAN_rx_msg& msg){
-	if(msg.header.id != 0x240u + nodeId){ // Filter if message is a reply for this motor
-		return;
-	}
-	nextAvailable = true; // Got a response
-	uint8_t cmd = msg.data[0];
-	switch(cmd){
-	case 0xA1: // Torque reply
+	if(msg.header.extId==false)
 	{
-		curTemp = msg.data[1];
-		curCurrent = (msg.data[2] | (msg.data[3] << 8)); // in 0.01A
-		int16_t speed = (msg.data[4] | (msg.data[5] << 8));
-		int16_t angle = (msg.data[6] | (msg.data[7] << 8)); // Position in 1°
-		uint32_t ustime = micros();
-		if(activerequests && ustime - lastTorqueStatusUpdate_us){
-			float interpolatedPos = speed / (1000000.0 * (ustime - lastTorqueStatusUpdate_us));
-			lastPos = (lastPos + (angle + interpolatedPos)) / 2; // Interpolate due to low resolution
-		}
-		lastTorqueStatusUpdate_us = ustime;
-
-//		lastPos = (lastPos + angle) / 2; // Interpolate due to low resolution
-//		lastPos_torquereply = angle;
-		break;
+		return; // Ignore standard ID
 	}
-
-	case 0x92: // Multi turn angle in 0.01°
-	{
-		int32_t pos = (msg.data[4] | (msg.data[5] << 8) | (msg.data[6] << 16) | (msg.data[7] << 24));
-		lastAngleUpdate = HAL_GetTick();
-		lastPos = pos * 0.01;
-		break;
-	}
-	case 0x94: // Multi turn angle in 0.01°
-	{
-		int32_t pos = (msg.data[6] | (msg.data[7] << 8));
-		lastAngleUpdate = HAL_GetTick();
-		lastPos = (lastPos / 360) + (pos * 0.01);
-		break;
-	}
-//	case 0x60: // Multi turn pos in enc counts
-//	{
-//		int32_t pos = (msg.data[4] | (msg.data[5] << 8) | (msg.data[6] << 16) | (msg.data[7] << 24));
-//		lastAngleUpdate = HAL_GetTick();
-//		break;
-//	}
-
-	case 0x9A: // Status 1
-	{
-		curTemp = msg.data[1];
-		curVoltage = msg.data[4] | (msg.data[5] << 8);
-		lastErrors.asInt = msg.data[6] | (msg.data[7] << 8);
-		errorCb(lastErrors);
-		break;
-	}
-
-	case 0xB5: // Model name
-	{
-		memcpy(this->modelName,msg.data+1,7);
-		break;
-	}
-
-	}
-
+	uint32_t extid= msg.header.id;
+	robstriteMotor.RobStrite_Motor_Analysis(msg.data, extid);
 }
 
 void RmdMotorCAN::updateRequestMode(bool activerequests){
