@@ -35,11 +35,11 @@ public:
 	void stopMotor() override;
 	void startMotor() override;
 	Encoder* getEncoder() override;
-	bool hasIntegratedEncoder() {return true;}
+	bool hasIntegratedEncoder() override {return true;}
 	void setTorque(int16_t torque);
-	bool motorReady();
+	bool motorReady() override; 
 
-	void Run();
+	void Run()override;
 
 	void saveFlash() override; 		// Write to flash here
 	void restoreFlash() override;	// Load from flash
@@ -53,10 +53,8 @@ public:
 	void setCanFilter();
 	void sendMsg(void* header,uint8_t* data);
 	void sendMsg(std::array<uint8_t,8> &data,uint8_t len = 8);
-	void sendCmd(uint8_t cmd);
 
 	void canRxPendCallback(CANPort* port,CAN_rx_msg& msg) override;
-	void updateStatus();
 
 	void registerCommands();
 	CommandStatus command(const ParsedCommand& cmd,std::vector<CommandReply>& replies) override;
@@ -94,7 +92,6 @@ private:
 
 	uint32_t lastAngleUpdate = 0;
 	uint32_t lastTorqueStatusUpdate_us = 0;
-	uint32_t _lastUpdateTime = 0;
 	uint32_t _lastVoltageUpdateTime = 0;
 	float lastPos = 0;
 	uint16_t maxTorque = 1000; // in 0.01A, max 0x7fff

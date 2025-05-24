@@ -100,7 +100,6 @@ void RmdMotorCAN::saveFlash(){
 void RmdMotorCAN::Run(){
 //	bool first = true;
 	Delay(100);
-	_lastUpdateTime= HAL_GetTick();
 	while(true){
         auto current_time = HAL_GetTick();
         if(activerequests)
@@ -113,7 +112,7 @@ void RmdMotorCAN::Run(){
 			_lastVoltageUpdateTime = current_time;
 			robstriteMotor.Get_RobStrite_Motor_parameter(0x701C); //获得电压
 		}
-		DelayUntil(10);
+		DelayUntil(500);
 		
 		// nextAvailable = false;
 		// if(!available){
@@ -189,9 +188,10 @@ uint32_t RmdMotorCAN::getCpr(){
 int32_t RmdMotorCAN::getPos(){
 	if(activerequests && HAL_GetTick() - lastAngleUpdate > angleUpdateMs){
 		// pos outdated. Should be sent without request
-		sendCmd(0x92); // request multiturn pos 0x92, 0x60
+		robstriteMotor.Enable_Motor();
 	}
-	return (lastPos * 100) - posOffset;
+	lastPos= robstriteMotor.Pos_Info.Angle; // Get position in 0.01 degrees
+	return (lastPos*100) - posOffset;
 }
 
 void RmdMotorCAN::setPos(int32_t pos){
@@ -220,20 +220,6 @@ void RmdMotorCAN::sendMsg(std::array<uint8_t,8> &data,uint8_t len){
 	}
 }
 
-void RmdMotorCAN::sendCmd(uint8_t cmd){
-	std::array<uint8_t,8> data = {0};
-	data[0] = cmd;
-	sendMsg(data);
-}
-
-
-/**
- * Requests Status1 update
- * Contains voltage, errors and temperature
- */
-void RmdMotorCAN::updateStatus(){
-	sendCmd(0x9A);
-}
 
 /**
  * Torque 0.01A * torque
