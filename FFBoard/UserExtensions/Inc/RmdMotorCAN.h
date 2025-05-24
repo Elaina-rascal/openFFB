@@ -16,7 +16,7 @@
 #include "CanHandler.h"
 #include "CommandHandler.h"
 #include "PersistentStorage.h"
-
+#include "Robstrite.h"
 #ifdef RMDCAN
 #define RMD_THREAD_MEM 256
 #define RMD_THREAD_PRIO 25 // Must be higher than main thread
