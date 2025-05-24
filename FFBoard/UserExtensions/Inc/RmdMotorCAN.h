@@ -51,15 +51,12 @@ public:
 	EncoderType getEncoderType() override;
 
 	void setCanFilter();
-	void updateRequestMode(bool activerequests);
 	void sendMsg(void* header,uint8_t* data);
 	void sendMsg(std::array<uint8_t,8> &data,uint8_t len = 8);
 	void sendCmd(uint8_t cmd);
 
 	void canRxPendCallback(CANPort* port,CAN_rx_msg& msg) override;
 	void updateStatus();
-
-	void requestConstantReports(uint8_t cmd,bool enable,uint16_t interval_10ms);
 
 	void registerCommands();
 	CommandStatus command(const ParsedCommand& cmd,std::vector<CommandReply>& replies) override;
@@ -97,15 +94,16 @@ private:
 
 	uint32_t lastAngleUpdate = 0;
 	uint32_t lastTorqueStatusUpdate_us = 0;
-
+	uint32_t _lastUpdateTime = 0;
+	uint32_t _lastVoltageUpdateTime = 0;
 	float lastPos = 0;
 	uint16_t maxTorque = 1000; // in 0.01A, max 0x7fff
 
 	int32_t filterId = -2;
 
 	int16_t curCurrent = 0;
-	uint8_t curTemp = 0;
-	uint16_t curVoltage = 0;
+	float curTemp = 0;
+	float curVoltage = 0;
 
 	ErrorStatus lastErrors = {0};
 

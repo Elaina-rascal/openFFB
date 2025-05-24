@@ -100,26 +100,39 @@ void RmdMotorCAN::saveFlash(){
 void RmdMotorCAN::Run(){
 //	bool first = true;
 	Delay(100);
-	// startMotor();
+	_lastUpdateTime= HAL_GetTick();
 	while(true){
-		nextAvailable = false;
-		if(!available){
-			// sendCmd(0xB5); // Get type
-			Delay(20);
+        auto current_time = HAL_GetTick();
+        if(activerequests)
+		{
+            robstriteMotor.Enable_Motor(); // 获得反馈
+        }
+		available=true;
+		if(current_time-_lastVoltageUpdateTime > 2000)
+		{
+			_lastVoltageUpdateTime = current_time;
+			robstriteMotor.Get_RobStrite_Motor_parameter(0x701C); //获得电压
 		}
+		DelayUntil(10);
+		
+		// nextAvailable = false;
+		// if(!available){
+		// 	// sendCmd(0xB5); // Get type
+		// 	Delay(20);
+		// }
 
-		if(activerequests){
-			updateStatus();
-		}else{
-			if(!available || requestConstantReportEnable){
-				// Setup
-				requestConstantReports(0x92, true, 0); // Enable constant position sending
-				requestConstantReportEnable = false;
-				Delay(150);
-			}
-		}
-		Delay(1000);
-		available = nextAvailable; // should have received some replies
+		// if(activerequests){
+		// 	updateStatus();
+		// }else{
+		// 	if(!available || requestConstantReportEnable){
+		// 		// Setup
+		// 		requestConstantReports(0x92, true, 0); // Enable constant position sending
+		// 		requestConstantReportEnable = false;
+		// 		Delay(150);
+		// 	}
+		// }
+		// Delay(1000);
+		// available = nextAvailable; // should have received some replies
 	}
 }
 
@@ -249,16 +262,6 @@ void RmdMotorCAN::errorCb(ErrorStatus &errors){
 	}
 }
 
-/**
- * Request constant automatic replies
- * interval 0 = 10ms, 1= 20ms...
- */
-void RmdMotorCAN::requestConstantReports(uint8_t cmd,bool enable,uint16_t interval_10ms){
-
-	//0xB6 0x92 0x01 0x01 0x00 0x00 0x00 0x00 reports position
-	std::array<uint8_t,8> data{0xB6,cmd,(uint8_t)(enable & 1),(uint8_t)(interval_10ms & 0xff),(uint8_t)((interval_10ms >> 8) & 0xff),0,0,0};
-	sendMsg(data);
-}
 
 void RmdMotorCAN::canRxPendCallback(CANPort* port,CAN_rx_msg& msg){
 	if(msg.header.extId==false)
@@ -267,23 +270,8 @@ void RmdMotorCAN::canRxPendCallback(CANPort* port,CAN_rx_msg& msg){
 	}
 	uint32_t extid= msg.header.id;
 	robstriteMotor.RobStrite_Motor_Analysis(msg.data, extid);
-}
-
-void RmdMotorCAN::updateRequestMode(bool activerequests){
-	if(activerequests == this->activerequests){
-		return; // Nothing to do
-	}
-
-	if(activerequests){
-		// Disable constant replies
-//		requestConstantReports(0x9A, false, 0); // Disable constant status sending
-		requestConstantReports(0x92, false, 0); // Disable constant position sending
-
-	}else{
-		requestConstantReportEnable = true;
-//		requestConstantReports(0x92, true, 0); // Enable constant position sending
-	}
-	this->activerequests = activerequests;
+	curTemp=robstriteMotor.Pos_Info.Temp;
+	curVoltage=robstriteMotor.drw.VBUS.data*10;
 }
 
 void RmdMotorCAN::registerCommands(){
@@ -362,7 +350,8 @@ CommandStatus RmdMotorCAN::command(const ParsedCommand& cmd,std::vector<CommandR
 		if(cmd.type == CMDtype::get){
 				replies.emplace_back(activerequests);
 			}else if(cmd.type == CMDtype::set){
-				updateRequestMode(cmd.val);
+				// updateRequestMode(cmd.val);
+				this->activerequests=cmd.val;
 			}else{
 				return CommandStatus::ERR;
 			}
