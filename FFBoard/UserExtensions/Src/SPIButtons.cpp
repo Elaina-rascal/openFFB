@@ -4,6 +4,7 @@
  *  Created on: 11.02.2020
  *      Author: Yannick
  */
+#define USE_MOZA 1
 
 #include <math.h>
 #include <tuple>
@@ -165,6 +166,7 @@ void SPI_Buttons::restoreFlash(){
 }
 
 void SPI_Buttons::process(uint64_t* buf){
+#if !USE_MOZA
 	if(offset){
 		if(this->conf.cutRight){
 			*buf = *buf >> offset;
@@ -172,9 +174,37 @@ void SPI_Buttons::process(uint64_t* buf){
 			*buf = *buf & this->mask;
 		}
 	}
-	if(conf.invert)
-		*buf = (~*buf);
-	*buf = *buf  & mask;
+    if (conf.invert)
+        *buf = (~*buf);
+    *buf = *buf & mask;
+#endif
+#if USE_MOZA
+	// uint32_t mask_all= 0xFFFFFFFF; // 32 bit mask with all bits set
+	uint32_t buffer_value=~(*buf&0xFFFFFFFF); // Get 32 bit value
+	uint32_t temp_buffer=0x0; // 32 bit buffer with all bits set
+	//将1 映射到1
+	temp_buffer|= (buffer_value & 0x00000001); // Get bit 0
+	//将2映射到19
+	temp_buffer |= ((buffer_value & 0x00000002) << 17); // Get bit 1
+
+	//将buffer 4-8的值移到2-6
+	temp_buffer |= ((buffer_value & 0x000000F8) >> 2); // Get bits 4-8
+	//9-12 : 27-30
+	temp_buffer |= ((buffer_value & 0x00000F00) << 18); // Get bits 9-12
+	//将buffer 13到24的值移到7到18
+	temp_buffer |= ((buffer_value & 0x00FFF000) >> 6); // Get bits 13-24
+	//25-26 26-25 27-20 28-23 29-22 30-21 31-24
+	temp_buffer |= ((buffer_value&0x01000000)<<1);
+	temp_buffer |= ((buffer_value&0x02000000)>>1);
+	temp_buffer |= ((buffer_value&0x04000000)>>7);
+	temp_buffer |= ((buffer_value&0x08000000)>>5);
+	temp_buffer |= ((buffer_value&0x10000000)>>7);
+	temp_buffer |= ((buffer_value&0x20000000)>>9);
+	temp_buffer |= ((buffer_value&0x40000000)>>7);
+	*buf= temp_buffer;
+	// 
+#endif
+
 }
 
 __attribute__((optimize("-Ofast")))
