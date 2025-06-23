@@ -189,7 +189,7 @@ int32_t EffectsCalculator::calcNonConditionEffectForce(FFB_Effect *effect) {
 	{
 		uint32_t elapsed_time = HAL_GetTick() - effect->startTime;
 		int32_t force = ((elapsed_time + effect->phase) % ((uint32_t)effect->period + 2)) < (uint32_t)(effect->period + 2) / 2 ? -magnitude : magnitude;
-		force_vector = force + effect->offset;
+		force_vector = force/3 + effect->offset;
 		break;
 	}
 
@@ -259,7 +259,7 @@ int32_t EffectsCalculator::calcNonConditionEffectForce(FFB_Effect *effect) {
 		float freq = 1.0f / (float)(std::max<uint16_t>(effect->period, 2));
 		float phase = (float)effect->phase / (float)35999; //degrees
 		float sine = sinf(2.0 * M_PI * (t * freq + phase)) * magnitude;
-		force_vector = (int32_t)(effect->offset + sine);
+		force_vector = (int32_t)(effect->offset + sine/3);
 		break;
 	}
 	default:
